@@ -30,7 +30,7 @@ brew install bluearchio/tap/tag-manager
 - AI-powered cost insights
 
 **Requirements:**
-- macOS (Intel or Apple Silicon)
+- macOS with Apple Silicon (M1/M2/M3)
 - AWS credentials configured
 
 ## Updating
