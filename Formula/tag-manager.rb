@@ -17,8 +17,20 @@ class TagManager < Formula
     # The curl installer puts the binary at ~/.local/bin/tag-manager
     curl_binary = Pathname.new(Dir.home) / ".local" / "bin" / "tag-manager"
     if curl_binary.exist?
-      ohai "Removing old curl-installed binary at #{curl_binary}"
-      curl_binary.unlink
+      begin
+        ohai "Removing old curl-installed binary at #{curl_binary}"
+        curl_binary.unlink
+        ohai "[OK] Old binary removed successfully"
+      rescue Errno::EACCES
+        opoo "Permission denied: Cannot remove #{curl_binary}"
+        opoo "Run manually: rm ~/.local/bin/tag-manager"
+      rescue Errno::EBUSY
+        opoo "File is in use: #{curl_binary}"
+        opoo "Close any running tag-manager processes, then run: rm ~/.local/bin/tag-manager"
+      rescue => e
+        opoo "Could not remove #{curl_binary}: #{e.message}"
+        opoo "Run manually: rm ~/.local/bin/tag-manager"
+      end
     end
   end
 
