@@ -1,9 +1,9 @@
 class TagManager < Formula
   desc "AWS Tag Manager CLI - FinOps, compliance, and cost optimization tool"
   homepage "https://bluearch.io"
-  url "https://dist.bluearch.io/tag-manager/v0.4.7/tag-manager_macos_arm64"
-  version "v0.4.7"
-  sha256 "a1ed7a8593e57599aaf55d5da8ce7c4cbf9811109d559812f8e473e0423845d8"
+  url "https://dist.bluearch.io/tag-manager/v0.4.8/tag-manager_macos_arm64"
+  version "v0.4.8"
+  sha256 "0fa36886cb58fab2c3f28411f072422f56e74178cf6d95aa5fe40167d5e650e1"
   license :cannot_represent
 
   depends_on arch: :arm64
