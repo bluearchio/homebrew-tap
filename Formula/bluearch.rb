@@ -6,7 +6,7 @@ class Bluearch < Formula
 
   depends_on arch: :arm64
 
-  url "https://dist.bluearch.io/alerting-engine-api/latest/bluearch_macos_arm64"
+  url "https://dist.bluearch.io/bluearch/latest/bluearch_macos_arm64"
   sha256 "PLACEHOLDER_SHA256"
 
   def install
