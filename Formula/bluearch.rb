@@ -1,24 +1,35 @@
 class Bluearch < Formula
-  desc "BlueArch CLI - AWS infrastructure recommendations, alerting, and remediation"
+  desc "AWS infrastructure recommendations, alerting, and misconfig detection CLI"
   homepage "https://bluearch.io"
-  version "0.0.0"
+  url "https://dist.bluearch.io/bluearch/v0.9.2/bluearch_macos_arm64"
+  version "v0.9.2"
+  sha256 "515bcd01a1f92a9dc953fbd2fd42e2d661eca5362bdeab2262da49b59e8642a0"
   license :cannot_represent
 
   depends_on arch: :arm64
-
-  url "https://dist.bluearch.io/bluearch/latest/bluearch_macos_arm64"
-  sha256 "PLACEHOLDER_SHA256"
 
   def install
     bin.install "bluearch_macos_arm64" => "bluearch"
   end
 
   def post_install
-    # Clean up old curl-based installations if present
-    old_binary = Pathname.new("#{Dir.home}/.local/bin/bluearch")
-    if old_binary.exist?
-      opoo "Removing old curl-installed binary at #{old_binary}"
-      old_binary.unlink
+    # Clean up curl-installed binary to avoid PATH conflicts
+    curl_binary = Pathname.new(Dir.home) / ".local" / "bin" / "bluearch"
+    if curl_binary.exist?
+      begin
+        ohai "Removing old curl-installed binary at #{curl_binary}"
+        curl_binary.unlink
+        ohai "[OK] Old binary removed successfully"
+      rescue Errno::EACCES
+        opoo "Permission denied: Cannot remove #{curl_binary}"
+        opoo "Run manually: rm ~/.local/bin/bluearch"
+      rescue Errno::EBUSY
+        opoo "File is in use: #{curl_binary}"
+        opoo "Close any running bluearch processes, then run: rm ~/.local/bin/bluearch"
+      rescue => e
+        opoo "Could not remove #{curl_binary}: #{e.message}"
+        opoo "Run manually: rm ~/.local/bin/bluearch"
+      end
     end
   end
 
@@ -26,15 +37,15 @@ class Bluearch < Formula
     <<~EOS
       BlueArch CLI has been installed.
 
-      Quick start:
-        bluearch scan              # Scan AWS resources
-        bluearch web start         # Launch web dashboard
-        bluearch recommendations   # View findings
+      Getting started:
+        bluearch --help
+        bluearch scan
 
-      Ensure your AWS credentials are configured:
-        aws configure
-        # or
+      Configure AWS credentials:
         export AWS_PROFILE=your-profile
+        aws sso login
+
+      Data is stored in: ~/.bluearch/
     EOS
   end
 
