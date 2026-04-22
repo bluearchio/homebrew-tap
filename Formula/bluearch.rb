@@ -1,9 +1,9 @@
 class Bluearch < Formula
   desc "AWS infrastructure recommendations, alerting, and misconfig detection CLI"
   homepage "https://bluearch.io"
-  url "https://dist.bluearch.io/bluearch/v0.10.1/bluearch_macos_arm64"
-  version "v0.10.1"
-  sha256 "126a01d658a58482ebc3b3a57665fc49c19c30b802c600006bf306c7cce16483"
+  url "https://dist.bluearch.io/bluearch/v0.11.1/bluearch_macos_arm64"
+  version "v0.11.1"
+  sha256 "27e6ac0619474d6c241aa0272bd5c680d62fe7a7864aa9374b9462432734bbbe"
   license :cannot_represent
 
   depends_on arch: :arm64
@@ -50,6 +50,6 @@ class Bluearch < Formula
   end
 
   test do
-    system "#{bin}/bluearch", "--version-silent"
+    system "#{bin}/bluearch", "--version"
   end
 end
