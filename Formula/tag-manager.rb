@@ -7,6 +7,7 @@ class TagManager < Formula
   license :cannot_represent
 
   depends_on arch: :arm64
+  depends_on "bluearch-core"
 
   def install
     bin.install "tag-manager_macos_arm64" => "tag-manager"
