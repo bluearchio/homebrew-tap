@@ -1,9 +1,9 @@
 class CloudGovernance < Formula
   desc "BlueArch Governance Hub"
   homepage "https://bluearch.io"
-  url "https://dist.bluearch.io/cloud-governance/v0.2.1/cloud-governance_macos_arm64"
-  version "v0.2.1"
-  sha256 "47a96cd965b6d9a2ebb732199f862b8dadcc70a5351a1d81a467fadf73738b69"
+  url "https://dist.bluearch.io/cloud-governance/v0.2.2/cloud-governance_macos_arm64"
+  version "v0.2.2"
+  sha256 "79cf0c2c0a7ea3740f6b52f80cec39d8a7c30d7ae057e3472ee80e7232e54a01"
   license :cannot_represent
 
   depends_on arch: :arm64
