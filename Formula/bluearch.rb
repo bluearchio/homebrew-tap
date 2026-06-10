@@ -1,9 +1,9 @@
 class Bluearch < Formula
   desc "AWS infrastructure recommendations and alerting CLI"
   homepage "https://bluearch.io"
-  url "https://dist.bluearch.io/bluearch/v0.13.1/bluearch_macos_arm64"
-  version "v0.13.1"
-  sha256 "17fcb2062b7d9dd6622c6f1c528681d2d992018147672154f7c1090d46649b29"
+  url "https://dist.bluearch.io/bluearch/v0.13.2/bluearch_macos_arm64"
+  version "v0.13.2"
+  sha256 "314ec33787446027eac4d3ec54ab74973cf929c17d79c209993763a9506632c3"
   license :cannot_represent
 
   depends_on arch: :arm64
