@@ -4,7 +4,7 @@ class BluearchAwsTags < Formula
   url "https://github.com/bluearchio/bluearch-aws-tags/releases/download/v0.12.1/tag-manager_macos_arm64"
   version "v0.12.1"
   sha256 "1861a24d5fb01cea10f0fa12cdd89da3efe38e4e0b7400f8b2f315ca73a84a75"
-  license :cannot_represent
+  license "MIT"
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"

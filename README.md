@@ -44,6 +44,18 @@ brew uninstall bluearch-aws-governance bluearch-aws-tags bluearch-aws-ops bluear
 brew untap bluearchio/tap
 ```
 
+## Validate Formula Changes
+
+```bash
+for formula in Formula/*.rb; do ruby -c "$formula"; done
+```
+
+Before changing a formula, confirm the URL points to a public GitHub release asset and the SHA256 was computed from that exact asset.
+
+## Security
+
+Do not commit private buckets, signing credentials, tap tokens, internal release automation, or local paths that expose private account details. Report suspected vulnerabilities privately; see `SECURITY.md`.
+
 ## Repositories
 
 - https://github.com/bluearchio/bluearch-aws-core

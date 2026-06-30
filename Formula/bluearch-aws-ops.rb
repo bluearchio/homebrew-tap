@@ -4,7 +4,7 @@ class BluearchAwsOps < Formula
   url "https://github.com/bluearchio/bluearch-aws-ops/releases/download/v0.13.2/bluearch_macos_arm64"
   version "v0.13.2"
   sha256 "314ec33787446027eac4d3ec54ab74973cf929c17d79c209993763a9506632c3"
-  license :cannot_represent
+  license "MIT"
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"

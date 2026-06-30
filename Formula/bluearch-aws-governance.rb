@@ -4,7 +4,7 @@ class BluearchAwsGovernance < Formula
   url "https://github.com/bluearchio/bluearch-aws-governance/releases/download/v0.2.2/cloud-governance_macos_arm64"
   version "v0.2.2"
   sha256 "79cf0c2c0a7ea3740f6b52f80cec39d8a7c30d7ae057e3472ee80e7232e54a01"
-  license :cannot_represent
+  license "MIT"
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
