@@ -1,13 +1,13 @@
-class Bluearch < Formula
-  desc "AWS infrastructure recommendations and alerting CLI"
-  homepage "https://bluearch.io"
-  url "https://dist.bluearch.io/bluearch/v0.13.2/bluearch_macos_arm64"
+class BluearchAwsOps < Formula
+  desc "AWS operations CLI for recommendations, alerting, and remediation"
+  homepage "https://github.com/bluearchio/bluearch-aws-ops"
+  url "https://github.com/bluearchio/bluearch-aws-ops/releases/download/v0.13.2/bluearch_macos_arm64"
   version "v0.13.2"
   sha256 "314ec33787446027eac4d3ec54ab74973cf929c17d79c209993763a9506632c3"
   license :cannot_represent
 
   depends_on arch: :arm64
-  depends_on "bluearch-core"
+  depends_on "bluearch-aws-core"
 
   def install
     bin.install "bluearch_macos_arm64" => "bluearch"
@@ -36,7 +36,7 @@ class Bluearch < Formula
 
   def caveats
     <<~EOS
-      BlueArch CLI has been installed.
+      bluearch-aws-ops has been installed.
 
       Getting started:
         bluearch --help

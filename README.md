@@ -1,53 +1,52 @@
 # BlueArch Homebrew Tap
 
-Official Homebrew tap for BlueArch tools.
+Public Homebrew tap for the BlueArch AWS tools.
 
-## Installation
+## Install
 
 ```bash
-# Add the tap
 brew tap bluearchio/tap
-
-# Install tag-manager
-brew install tag-manager
+brew install bluearchio/tap/bluearch-aws-core
+brew install bluearchio/tap/bluearch-aws-ops
+brew install bluearchio/tap/bluearch-aws-tags
+brew install bluearchio/tap/bluearch-aws-governance
 ```
 
-## Available Formulas
-
-### tag-manager
-
-AWS Tag Manager CLI - FinOps, compliance, and cost optimization tool for AWS.
+Start the shared local runtime first:
 
 ```bash
-brew install bluearchio/tap/tag-manager
+bluearch-core start --daemon
 ```
 
-**Features:**
-- AWS resource discovery and tagging
-- Cost analysis powered by CUR (Cost and Usage Reports)
-- Tag compliance monitoring
-- Cross-account management
-- AI-powered cost insights
+## Formulas
 
-**Requirements:**
-- macOS with Apple Silicon (M1/M2/M3)
-- AWS credentials configured
+- `bluearch-aws-core`: installs the `bluearch-core` local runtime.
+- `bluearch-aws-ops`: installs the `bluearch` AWS operations CLI.
+- `bluearch-aws-tags`: installs the `tag-manager` AWS tagging and FinOps CLI.
+- `bluearch-aws-governance`: installs the `cloud-governance` Governance Hub CLI.
 
-## Updating
+Product formulas depend on `bluearch-aws-core`.
+
+## Update
 
 ```bash
 brew update
-brew upgrade tag-manager
+brew upgrade bluearchio/tap/bluearch-aws-core
+brew upgrade bluearchio/tap/bluearch-aws-ops
+brew upgrade bluearchio/tap/bluearch-aws-tags
+brew upgrade bluearchio/tap/bluearch-aws-governance
 ```
 
-## Uninstalling
+## Uninstall
 
 ```bash
-brew uninstall tag-manager
+brew uninstall bluearch-aws-governance bluearch-aws-tags bluearch-aws-ops bluearch-aws-core
 brew untap bluearchio/tap
 ```
 
-## Support
+## Repositories
 
-- [Documentation](https://bluearch.io/docs)
-- [Issues](https://github.com/bluearchio/tag-manager-cli/issues)
+- https://github.com/bluearchio/bluearch-aws-core
+- https://github.com/bluearchio/bluearch-aws-ops
+- https://github.com/bluearchio/bluearch-aws-tags
+- https://github.com/bluearchio/bluearch-aws-governance

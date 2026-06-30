@@ -1,13 +1,13 @@
-class TagManager < Formula
-  desc "AWS Tag Manager CLI - FinOps, compliance, and cost optimization tool"
-  homepage "https://bluearch.io"
-  url "https://dist.bluearch.io/tag-manager/v0.12.1/tag-manager_macos_arm64"
+class BluearchAwsTags < Formula
+  desc "AWS tagging, lifecycle, tag policy, and FinOps CLI"
+  homepage "https://github.com/bluearchio/bluearch-aws-tags"
+  url "https://github.com/bluearchio/bluearch-aws-tags/releases/download/v0.12.1/tag-manager_macos_arm64"
   version "v0.12.1"
   sha256 "1861a24d5fb01cea10f0fa12cdd89da3efe38e4e0b7400f8b2f315ca73a84a75"
   license :cannot_represent
 
   depends_on arch: :arm64
-  depends_on "bluearch-core"
+  depends_on "bluearch-aws-core"
 
   def install
     bin.install "tag-manager_macos_arm64" => "tag-manager"
@@ -37,7 +37,7 @@ class TagManager < Formula
 
   def caveats
     <<~EOS
-      Tag Manager CLI has been installed.
+      bluearch-aws-tags has been installed.
 
       Getting started:
         tag-manager --help
