@@ -63,7 +63,7 @@ Before changing a formula, confirm the URL points to a public GitHub release ass
 
 Public release workflows update formulas by opening a pull request against this
 tap after the signed macOS release asset is published. Configure each public repo
-with `HOMEBREW_TAP_TOKEN`, scoped to `bluearchio/homebrew-tap` contents and pull
+with `HOMEBREW_TAP_TOKEN_2`, scoped to `bluearchio/homebrew-tap` contents and pull
 requests.
 
 Pre-launch formulas may be disabled until their first public GitHub release is
