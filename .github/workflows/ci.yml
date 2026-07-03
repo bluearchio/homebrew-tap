@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formula-syntax:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ruby syntax
+        run: |
+          for formula in Formula/*.rb; do
+            ruby -c "$formula"
+          done
