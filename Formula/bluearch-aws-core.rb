@@ -1,11 +1,10 @@
 class BluearchAwsCore < Formula
   desc "Shared local runtime for BlueArch AWS tools"
   homepage "https://github.com/bluearchio/bluearch-aws-core"
-  url "https://github.com/bluearchio/bluearch-aws-core/releases/download/v0.2.4/bluearch-core-macos-arm64.zip"
-  version "v0.2.4"
-  sha256 "d0ae237cce9feef5eea2112dca45484fae99bbf9d96b9aa758b445947d5f4012"
+  url "https://github.com/bluearchio/bluearch-aws-core/releases/download/v0.2.5/bluearch-core-macos-arm64.zip"
+  version "v0.2.5"
+  sha256 "11ef61cf85fbea2f858210e5eeb832bc831ab3d7a1f3ba53e008dc999ad3be3a"
   license "MIT"
-  disable! date: "2026-07-03", because: "awaiting first public GitHub release"
 
   depends_on arch: :arm64
 
