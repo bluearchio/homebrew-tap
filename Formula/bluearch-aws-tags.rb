@@ -1,11 +1,10 @@
 class BluearchAwsTags < Formula
   desc "AWS tagging, lifecycle, tag policy, and FinOps CLI"
   homepage "https://github.com/bluearchio/bluearch-aws-tags"
-  url "https://github.com/bluearchio/bluearch-aws-tags/releases/download/v0.12.1/tag-manager-macos-arm64.zip"
-  version "v0.12.1"
-  sha256 "1861a24d5fb01cea10f0fa12cdd89da3efe38e4e0b7400f8b2f315ca73a84a75"
+  url "https://github.com/bluearchio/bluearch-aws-tags/releases/download/v0.12.3/tag-manager-macos-arm64.zip"
+  version "v0.12.3"
+  sha256 "99c43c618de197e3a58b9068f082b6a8a550700c3117c4c4c196fdb510af4e18"
   license "MIT"
-  disable! date: "2026-07-03", because: "awaiting first public GitHub release"
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
