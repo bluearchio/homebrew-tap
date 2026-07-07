@@ -8,7 +8,6 @@ class BluearchAwsTags < Formula
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
-  conflicts_with "tag-manager", because: "tag-manager was the old private formula name"
 
   def install
     bin.install "tag-manager"

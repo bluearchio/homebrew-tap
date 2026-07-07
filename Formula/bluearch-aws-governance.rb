@@ -8,7 +8,6 @@ class BluearchAwsGovernance < Formula
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
-  conflicts_with "cloud-governance", because: "cloud-governance was the old private formula name"
 
   def install
     bin.install "cloud-governance"

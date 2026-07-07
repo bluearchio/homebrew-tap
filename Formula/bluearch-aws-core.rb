@@ -7,7 +7,6 @@ class BluearchAwsCore < Formula
   license "MIT"
 
   depends_on arch: :arm64
-  conflicts_with "bluearch-core", because: "bluearch-core was the old private formula name"
 
   def install
     bin.install "bluearch-core"

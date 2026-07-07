@@ -8,7 +8,6 @@ class BluearchAwsOps < Formula
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
-  conflicts_with "bluearch", because: "bluearch was the old private formula name"
 
   def install
     bin.install "bluearch"
