@@ -22,8 +22,20 @@ public GitHub release updates the formula through the release automation.
 Start the shared local runtime first:
 
 ```bash
-bluearch-core start --daemon
+bluearch-aws-core start --daemon
 ```
+
+## Commands
+
+The formula names are also installed as commands:
+
+- `bluearch-aws-core` starts and manages the shared local runtime. Native alias: `bluearch-core`.
+- `bluearch-aws-ops` runs AWS operations scans and recommendations. Native alias: `bluearch`.
+- `bluearch-aws-tags` runs tagging, lifecycle, and FinOps workflows. Native alias: `tag-manager`.
+- `bluearch-aws-governance` runs Governance Hub. Native alias: `cloud-governance`.
+
+Core must be running before the product dashboards and backend commands can use
+shared setup, account context, storage, and local API services.
 
 ## Formulas
 
@@ -33,6 +45,20 @@ bluearch-core start --daemon
 - `bluearch-aws-governance`: installs the `cloud-governance` Governance Hub CLI.
 
 Product formulas depend on `bluearch-aws-core`.
+
+## Migrating From Old Private Formulae
+
+If you previously installed the private formulas, remove them before installing
+the public formulas:
+
+```bash
+brew uninstall --force bluearch-core bluearch tag-manager cloud-governance
+brew install bluearchio/tap/bluearch-aws-core
+brew install bluearchio/tap/bluearch-aws-tags
+```
+
+If your shell still finds an old curl-installed binary first, remove it from
+`~/.local/bin` or call the public command name, such as `bluearch-aws-tags`.
 
 ## Update
 

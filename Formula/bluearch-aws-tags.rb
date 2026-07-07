@@ -8,9 +8,16 @@ class BluearchAwsTags < Formula
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
+  conflicts_with "tag-manager", because: "tag-manager was the old private formula name"
 
   def install
     bin.install "tag-manager"
+    alias_path = bin/"bluearch-aws-tags"
+    alias_path.write <<~SH
+      #!/bin/sh
+      exec "#{bin}/tag-manager" "$@"
+    SH
+    alias_path.chmod 0755
   end
 
   def post_install
@@ -39,9 +46,15 @@ class BluearchAwsTags < Formula
     <<~EOS
       bluearch-aws-tags has been installed.
 
-      Getting started:
+      Start Core first:
+        bluearch-aws-core start --daemon
+
+      Commands:
+        bluearch-aws-tags --help
         tag-manager --help
-        tag-manager setup validate
+
+      Getting started:
+        bluearch-aws-tags setup validate
 
       Configure AWS credentials:
         export AWS_PROFILE=your-profile
@@ -52,6 +65,7 @@ class BluearchAwsTags < Formula
   end
 
   test do
+    system "#{bin}/bluearch-aws-tags", "--version"
     system "#{bin}/tag-manager", "--version"
   end
 end

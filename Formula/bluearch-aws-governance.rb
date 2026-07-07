@@ -8,21 +8,36 @@ class BluearchAwsGovernance < Formula
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
+  conflicts_with "cloud-governance", because: "cloud-governance was the old private formula name"
 
   def install
     bin.install "cloud-governance"
+    alias_path = bin/"bluearch-aws-governance"
+    alias_path.write <<~SH
+      #!/bin/sh
+      exec "#{bin}/cloud-governance" "$@"
+    SH
+    alias_path.chmod 0755
   end
 
   def caveats
     <<~EOS
       bluearch-aws-governance has been installed.
 
-      Start BlueArch Core to launch installed dashboards:
-        bluearch-core start --daemon
+      Start Core first:
+        bluearch-aws-core start --daemon
+
+      Commands:
+        bluearch-aws-governance --help
+        cloud-governance --help
+
+      Load the bundled catalog:
+        bluearch-aws-governance catalog load
     EOS
   end
 
   test do
+    system "#{bin}/bluearch-aws-governance", "--version"
     system "#{bin}/cloud-governance", "--version"
   end
 end

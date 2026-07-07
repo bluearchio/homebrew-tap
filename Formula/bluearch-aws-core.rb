@@ -7,17 +7,28 @@ class BluearchAwsCore < Formula
   license "MIT"
 
   depends_on arch: :arm64
+  conflicts_with "bluearch-core", because: "bluearch-core was the old private formula name"
 
   def install
     bin.install "bluearch-core"
+    alias_path = bin/"bluearch-aws-core"
+    alias_path.write <<~SH
+      #!/bin/sh
+      exec "#{bin}/bluearch-core" "$@"
+    SH
+    alias_path.chmod 0755
   end
 
   def caveats
     <<~EOS
       bluearch-aws-core has been installed.
 
-      Start the shared runtime and installed web dashboards:
-        bluearch-core start --daemon
+      Commands:
+        bluearch-aws-core --help
+        bluearch-core --help
+
+      Start the shared runtime before using the other BlueArch AWS tools:
+        bluearch-aws-core start --daemon
 
       API docs:
         http://127.0.0.1:8094/docs
@@ -25,6 +36,7 @@ class BluearchAwsCore < Formula
   end
 
   test do
+    system "#{bin}/bluearch-aws-core", "--version"
     system "#{bin}/bluearch-core", "--version"
   end
 end

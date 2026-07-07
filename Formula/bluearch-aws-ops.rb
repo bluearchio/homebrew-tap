@@ -8,9 +8,16 @@ class BluearchAwsOps < Formula
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
+  conflicts_with "bluearch", because: "bluearch was the old private formula name"
 
   def install
     bin.install "bluearch"
+    alias_path = bin/"bluearch-aws-ops"
+    alias_path.write <<~SH
+      #!/bin/sh
+      exec "#{bin}/bluearch" "$@"
+    SH
+    alias_path.chmod 0755
   end
 
   def post_install
@@ -38,9 +45,15 @@ class BluearchAwsOps < Formula
     <<~EOS
       bluearch-aws-ops has been installed.
 
-      Getting started:
+      Start Core first:
+        bluearch-aws-core start --daemon
+
+      Commands:
+        bluearch-aws-ops --help
         bluearch --help
-        bluearch scan
+
+      Getting started:
+        bluearch-aws-ops scan
 
       Configure AWS credentials:
         export AWS_PROFILE=your-profile
@@ -51,6 +64,7 @@ class BluearchAwsOps < Formula
   end
 
   test do
+    system "#{bin}/bluearch-aws-ops", "--version"
     system "#{bin}/bluearch", "--version"
   end
 end
