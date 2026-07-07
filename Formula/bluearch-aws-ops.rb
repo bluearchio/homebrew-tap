@@ -1,43 +1,16 @@
 class BluearchAwsOps < Formula
   desc "AWS operations CLI for recommendations, alerting, and remediation"
   homepage "https://github.com/bluearchio/bluearch-aws-ops"
-  url "https://dist.bluearch.io/releases/bluearch-aws-ops/v0.13.3/bluearch-macos-arm64.zip"
+  url "https://dist.bluearch.io/releases/bluearch-aws-ops/v0.13.3/bluearch-aws-ops-macos-arm64.zip"
   version "v0.13.3"
-  sha256 "157e3aeff00da4b323a6c55782a9bf081aceef036611eebfb2038f366729db37"
+  sha256 "7a3b875b53215ba382021c28bdd105433423048444489b76a516315350c7335e"
   license "MIT"
 
   depends_on arch: :arm64
   depends_on "bluearch-aws-core"
 
   def install
-    bin.install "bluearch"
-    alias_path = bin/"bluearch-aws-ops"
-    alias_path.write <<~SH
-      #!/bin/sh
-      exec "#{bin}/bluearch" "$@"
-    SH
-    alias_path.chmod 0755
-  end
-
-  def post_install
-    # Clean up curl-installed binary to avoid PATH conflicts
-    curl_binary = Pathname.new(Dir.home) / ".local" / "bin" / "bluearch"
-    if curl_binary.exist?
-      begin
-        ohai "Removing old curl-installed binary at #{curl_binary}"
-        curl_binary.unlink
-        ohai "[OK] Old binary removed successfully"
-      rescue Errno::EACCES
-        opoo "Permission denied: Cannot remove #{curl_binary}"
-        opoo "Run manually: rm ~/.local/bin/bluearch"
-      rescue Errno::EBUSY
-        opoo "File is in use: #{curl_binary}"
-        opoo "Close any running bluearch processes, then run: rm ~/.local/bin/bluearch"
-      rescue => e
-        opoo "Could not remove #{curl_binary}: #{e.message}"
-        opoo "Run manually: rm ~/.local/bin/bluearch"
-      end
-    end
+    bin.install "bluearch-aws-ops"
   end
 
   def caveats
@@ -49,7 +22,6 @@ class BluearchAwsOps < Formula
 
       Commands:
         bluearch-aws-ops --help
-        bluearch --help
 
       Getting started:
         bluearch-aws-ops scan
@@ -64,6 +36,5 @@ class BluearchAwsOps < Formula
 
   test do
     system "#{bin}/bluearch-aws-ops", "--version"
-    system "#{bin}/bluearch", "--version"
   end
 end

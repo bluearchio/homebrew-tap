@@ -2,9 +2,7 @@
 
 Public Homebrew tap for the BlueArch AWS tools.
 
-This tap only publishes the public `bluearch-aws-*` packages. The older private
-repositories (`bluearch-core`, `alerting-engine-api`, `tag-manager-cli`, and
-`cloud-governance`) must not update this tap.
+This tap only publishes the public `bluearch-aws-*` packages.
 
 ## Install
 
@@ -27,38 +25,29 @@ bluearch-aws-core start --daemon
 
 ## Commands
 
-The formula names are also installed as commands:
+The formula names are installed as commands:
 
-- `bluearch-aws-core` starts and manages the shared local runtime. Native alias: `bluearch-core`.
-- `bluearch-aws-ops` runs AWS operations scans and recommendations. Native alias: `bluearch`.
-- `bluearch-aws-tags` runs tagging, lifecycle, and FinOps workflows. Native alias: `tag-manager`.
-- `bluearch-aws-governance` runs Governance Hub. Native alias: `cloud-governance`.
+- `bluearch-aws-core` starts and manages the shared local runtime.
+- `bluearch-aws-ops` runs AWS operations scans and recommendations.
+- `bluearch-aws-tags` runs tagging, lifecycle, and FinOps workflows.
+- `bluearch-aws-governance` runs Governance Hub.
 
 Core must be running before the product dashboards and backend commands can use
 shared setup, account context, storage, and local API services.
 
 ## Formulas
 
-- `bluearch-aws-core`: installs the `bluearch-core` local runtime.
-- `bluearch-aws-ops`: installs the `bluearch` AWS operations CLI.
-- `bluearch-aws-tags`: installs the `tag-manager` AWS tagging and FinOps CLI.
-- `bluearch-aws-governance`: installs the `cloud-governance` Governance Hub CLI.
+- `bluearch-aws-core`: installs the shared local runtime.
+- `bluearch-aws-ops`: installs the AWS operations CLI.
+- `bluearch-aws-tags`: installs the AWS tagging and FinOps CLI.
+- `bluearch-aws-governance`: installs the Governance Hub CLI.
 
 Product formulas depend on `bluearch-aws-core`.
 
-## Migrating From Old Private Formulae
+## Migrating From Earlier Private Installs
 
-If you previously installed the private formulas, remove them before installing
-the public formulas:
-
-```bash
-brew uninstall --force bluearch-core bluearch tag-manager cloud-governance
-brew install bluearchio/tap/bluearch-aws-core
-brew install bluearchio/tap/bluearch-aws-tags
-```
-
-If your shell still finds an old curl-installed binary first, remove it from
-`~/.local/bin` or call the public command name, such as `bluearch-aws-tags`.
+If your shell still finds an older locally installed binary first, remove that
+old executable from your PATH and use the public command names above.
 
 ## Update
 
