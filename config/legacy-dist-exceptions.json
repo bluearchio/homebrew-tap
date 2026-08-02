@@ -1,0 +1,8 @@
+{
+  "enabled": [
+    "bluearch-aws-core",
+    "bluearch-aws-governance",
+    "bluearch-aws-ops",
+    "bluearch-aws-tags"
+  ]
+}

@@ -9,13 +9,231 @@ on:
 permissions:
   contents: read
 
+env:
+  HOMEBREW_NO_ANALYTICS: "1"
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  TAP_NAME: bluearchio/tap
+
 jobs:
-  formula-syntax:
+  repository-contract:
+    name: Repository contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Enforce one-way legacy exception transition
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_config="config/legacy-dist-exceptions.json"
+          base_config="$RUNNER_TEMP/base-legacy-dist-exceptions.json"
+          verify=(
+            python3 scripts/verify_legacy_transition.py
+            --current-config "$current_config"
+            --formula-dir Formula
+          )
+
+          case "$EVENT_NAME" in
+            pull_request)
+              base_revision="$PR_BASE_SHA"
+              ;;
+            push)
+              base_revision="$PUSH_BEFORE_SHA"
+              ;;
+            workflow_dispatch)
+              "${verify[@]}" --base-config "$current_config"
+              exit 0
+              ;;
+            *)
+              echo "Unsupported event for legacy transition validation: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ -z "$base_revision" || "$base_revision" =~ ^0+$ ]]; then
+            "${verify[@]}" --bootstrap
+            exit 0
+          fi
+
+          git cat-file -e "${base_revision}^{commit}"
+          if git cat-file -e "${base_revision}:${current_config}" 2>/dev/null; then
+            git show "${base_revision}:${current_config}" > "$base_config"
+            "${verify[@]}" --base-config "$base_config"
+          else
+            "${verify[@]}" --bootstrap
+          fi
+      - name: Test formula and updater contracts
+        run: python3 -m unittest discover -s tests -v
+      - name: Compile Python helpers
+        run: python3 -m compileall -q scripts tests
+
+  formula-quality:
+    name: Formula quality
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Ruby syntax
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Register this checkout as the local tap
+        shell: bash
         run: |
+          set -euo pipefail
+          test "$(uname -m)" = "arm64"
+          brew tap "$TAP_NAME"
+          tap_root="$(brew --repository "$TAP_NAME")"
+          if [[ "$(git -C "$tap_root" rev-parse --is-shallow-repository)" == "true" ]]; then
+            git -C "$tap_root" fetch --unshallow origin
+          fi
+          git -C "$tap_root" fetch --no-tags --force "$GITHUB_WORKSPACE" HEAD:refs/remotes/ci/workspace
+          git -C "$tap_root" checkout --detach refs/remotes/ci/workspace
+          test "$(git -C "$tap_root" rev-parse HEAD)" = "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+      - name: Trust only the formulae required for static inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          for formula in bluearch-aws-core bluearch-aws-governance bluearch-aws-ops bluearch-aws-tags; do
+            brew trust --formula "$TAP_NAME/$formula"
+          done
+      - name: Check Ruby syntax, style, audit, and readability
+        shell: bash
+        run: |
+          set -euo pipefail
           for formula in Formula/*.rb; do
             ruby -c "$formula"
           done
+          brew style "$TAP_NAME"
+          brew audit --strict --tap="$TAP_NAME"
+          brew readall --no-simulate "$TAP_NAME"
+
+  formula-install:
+    name: Install ${{ matrix.formula }}
+    needs: [repository-contract, formula-quality]
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - formula: bluearch-aws-core
+            binary: bluearch-aws-core
+          - formula: bluearch-aws-ops
+            binary: bluearch-aws-ops
+          - formula: bluearch-aws-tags
+            binary: bluearch-aws-tags
+          - formula: bluearch-aws-governance
+            binary: bluearch-aws-governance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Register this checkout as the local tap
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "arm64"
+          brew tap "$TAP_NAME"
+          tap_root="$(brew --repository "$TAP_NAME")"
+          if [[ "$(git -C "$tap_root" rev-parse --is-shallow-repository)" == "true" ]]; then
+            git -C "$tap_root" fetch --unshallow origin
+          fi
+          git -C "$tap_root" fetch --no-tags --force "$GITHUB_WORKSPACE" HEAD:refs/remotes/ci/workspace
+          git -C "$tap_root" checkout --detach refs/remotes/ci/workspace
+          test "$(git -C "$tap_root" rev-parse HEAD)" = "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+      - name: Install with formula-specific trust
+        env:
+          FORMULA: ${{ matrix.formula }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install "$TAP_NAME/bluearch-aws-core"
+          if [[ "$FORMULA" != "bluearch-aws-core" ]]; then
+            brew install "$TAP_NAME/$FORMULA"
+          fi
+
+          brew trust --json=v1 > "$RUNNER_TEMP/homebrew-trust.json"
+          FORMULA="$FORMULA" python3 - "$RUNNER_TEMP/homebrew-trust.json" <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as trust_file:
+              trust = json.load(trust_file)
+
+          expected = {"bluearchio/tap/bluearch-aws-core"}
+          expected.add(f"bluearchio/tap/{os.environ['FORMULA']}")
+          actual = set(trust["formulae"])
+          missing = expected - actual
+          if missing:
+              raise SystemExit(f"formula-specific trust missing: {sorted(missing)}")
+          if "bluearchio/tap" in trust["taps"]:
+              raise SystemExit("the whole BlueArch tap was trusted")
+          PY
+      - name: Test public executable and version
+        env:
+          BINARY: ${{ matrix.binary }}
+          FORMULA: ${{ matrix.formula }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          qualified_formula="$TAP_NAME/$FORMULA"
+          formula_prefix="$(brew --prefix "$qualified_formula")"
+          binary_path="$formula_prefix/bin/$BINARY"
+          test -x "$binary_path"
+
+          installed_commands="$(find "$formula_prefix/bin" -mindepth 1 -maxdepth 1 -exec basename {} \; | sort)"
+          test "$installed_commands" = "$BINARY"
+
+          for legacy in bluearch bluearch-core cloud-governance tag-manager; do
+            test ! -e "$formula_prefix/bin/$legacy"
+          done
+
+          product_home="$RUNNER_TEMP/product-home"
+          mkdir -p "$product_home"
+          version_output_file="$RUNNER_TEMP/version-output.txt"
+          HOME="$product_home" "$binary_path" --version > "$version_output_file" 2>&1
+          cat "$version_output_file"
+          formula_info="$(brew info --json=v2 "$qualified_formula")"
+          expected_version="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"].removeprefix("v"))' <<< "$formula_info")"
+          source_url="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["urls"]["stable"]["url"])' <<< "$formula_info")"
+          formula_sha256="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["urls"]["stable"]["checksum"])' <<< "$formula_info")"
+          python3 scripts/verify_formula_version.py \
+            --binary "$BINARY" \
+            --expected "$expected_version" \
+            --source-url "$source_url" \
+            --sha256 "$formula_sha256" \
+            --legacy-exceptions config/legacy-dist-exceptions.json \
+            < "$version_output_file"
+
+          brew test "$qualified_formula"
+
+  tap-release-gate:
+    name: Tap release gate
+    if: ${{ always() }}
+    needs: [repository-contract, formula-quality, formula-install]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every tap validation to pass
+        env:
+          FORMULA_INSTALL_RESULT: ${{ needs.formula-install.result }}
+          FORMULA_QUALITY_RESULT: ${{ needs.formula-quality.result }}
+          REPOSITORY_CONTRACT_RESULT: ${{ needs.repository-contract.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$REPOSITORY_CONTRACT_RESULT" = "success"
+          test "$FORMULA_QUALITY_RESULT" = "success"
+          test "$FORMULA_INSTALL_RESULT" = "success"
