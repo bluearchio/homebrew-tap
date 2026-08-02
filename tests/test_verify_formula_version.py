@@ -77,13 +77,13 @@ class VerifyFormulaVersionTests(unittest.TestCase):
             config = write_config(Path(tmpdir), list(LEGACY_DIST_RELEASES))
             for binary, (version, source_url, sha256) in LEGACY_DIST_RELEASES.items():
                 with self.subTest(binary=binary):
-                    expected_output = LEGACY_VERSION_OUTPUTS[binary]
+                    expected_output = "\n".join(LEGACY_VERSION_OUTPUTS[binary]) + "\n"
                     verify_version_output(
                         binary,
                         version,
                         source_url,
                         sha256,
-                        f"{expected_output}\n",
+                        expected_output,
                         config,
                     )
                     with self.assertRaises(ValueError):
@@ -92,7 +92,7 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                             version,
                             source_url,
                             "b" * 64,
-                            f"{expected_output}\n",
+                            expected_output,
                             config,
                         )
                     with self.assertRaises(ValueError):
@@ -101,7 +101,7 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                             version,
                             source_url.replace("dist.bluearch.io", "mirror.example"),
                             sha256,
-                            f"{expected_output}\n",
+                            expected_output,
                             config,
                         )
 
@@ -109,11 +109,10 @@ class VerifyFormulaVersionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             config = write_config(Path(tmpdir), list(LEGACY_DIST_RELEASES))
             for binary, (version, source_url, sha256) in LEGACY_DIST_RELEASES.items():
-                expected_output = LEGACY_VERSION_OUTPUTS[binary]
+                expected_output = "\n".join(LEGACY_VERSION_OUTPUTS[binary])
                 invalid_outputs = (
                     "legacy output\n",
                     f" {expected_output}\n",
-                    f"{expected_output} \n",
                     f"{expected_output}\nextra output\n",
                     f"{expected_output}\n\n",
                 )
@@ -130,6 +129,24 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                             output,
                             config,
                         )
+
+    def test_accepts_only_trailing_space_normalization_in_known_legacy_lines(self) -> None:
+        binary = "bluearch-aws-ops"
+        version, source_url, sha256 = LEGACY_DIST_RELEASES[binary]
+        output = "\n".join(LEGACY_VERSION_OUTPUTS[binary]).replace(
+            "outdated\n",
+            "outdated \n",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = write_config(Path(tmpdir), [binary])
+            verify_version_output(
+                binary,
+                version,
+                source_url,
+                sha256,
+                f"{output}\n",
+                config,
+            )
 
     def test_enabled_config_entries_match_only_exact_current_dist_formulae(self) -> None:
         enabled = load_legacy_exceptions(LEGACY_CONFIG)
@@ -161,7 +178,7 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                     version,
                     source_url,
                     sha256,
-                    f"{LEGACY_VERSION_OUTPUTS[binary]}\n",
+                    "\n".join(LEGACY_VERSION_OUTPUTS[binary]) + "\n",
                     config,
                 )
 

@@ -102,7 +102,7 @@ temporarily enables the four exact, checksum-pinned `dist.bluearch.io` archives
 that predate the strict public version identity. The approved version, URL, and
 SHA256 tuples remain hardcoded in the verifier; adding a name to the JSON file
 cannot authorize any other artifact. Each tuple must also emit its exact known
-one-line legacy version output.
+legacy version output sequence.
 
 Every formula update must pass that config to `scripts/update_formula.py`. The
 updater removes only the released product from the sorted exception list, and
