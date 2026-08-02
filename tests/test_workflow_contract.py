@@ -37,6 +37,14 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertNotIn('brew trust "$TAP_NAME"', workflow)
         self.assertNotIn("brew trust bluearchio/tap", workflow)
 
+    def test_formula_version_check_uses_exact_public_identity_verifier(self) -> None:
+        workflow = (WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+
+        self.assertIn("scripts/verify_formula_version.py", workflow)
+        self.assertIn('--binary "$BINARY"', workflow)
+        self.assertIn('--expected "$expected_version"', workflow)
+        self.assertNotIn("(?<![0-9])", workflow)
+
     def test_required_check_names_are_stable(self) -> None:
         ci = (WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
         codeql = (WORKFLOW_DIR / "codeql.yml").read_text(encoding="utf-8")

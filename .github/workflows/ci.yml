@@ -152,15 +152,9 @@ jobs:
           version_output="$(HOME="$product_home" "$binary_path" --version 2>&1)"
           printf '%s\n' "$version_output"
           expected_version="$(brew info --json=v2 "$qualified_formula" | python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"].removeprefix("v"))')"
-          VERSION_OUTPUT="$version_output" EXPECTED_VERSION="$expected_version" python3 - <<'PY'
-          import os
-          import re
-
-          output = os.environ["VERSION_OUTPUT"]
-          version = os.environ["EXPECTED_VERSION"]
-          if not re.search(rf"(?<![0-9])v?{re.escape(version)}(?![0-9])", output):
-              raise SystemExit(f"version output does not contain {version!r}: {output!r}")
-          PY
+          printf '%s\n' "$version_output" | python3 scripts/verify_formula_version.py \
+            --binary "$BINARY" \
+            --expected "$expected_version"
 
           brew test "$qualified_formula"
 
