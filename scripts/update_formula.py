@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from pathlib import Path
 
@@ -36,6 +37,25 @@ def replace_one(text: str, pattern: re.Pattern[str], replacement: str, label: st
     return pattern.sub(replacement, text, count=1)
 
 
+def load_legacy_exceptions(path: Path) -> set[str]:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise SystemExit(f"Cannot read legacy exception config: {error}") from error
+
+    if not isinstance(document, dict) or set(document) != {"enabled"}:
+        raise SystemExit("Legacy exception config must contain only an enabled list.")
+    enabled = document["enabled"]
+    if not isinstance(enabled, list) or any(not isinstance(name, str) for name in enabled):
+        raise SystemExit("Legacy exception config enabled value must be a list of names.")
+    if len(enabled) != len(set(enabled)):
+        raise SystemExit("Legacy exception config contains duplicate names.")
+    unknown = set(enabled) - PUBLIC_PACKAGES
+    if unknown:
+        raise SystemExit(f"Legacy exception config contains unknown names: {sorted(unknown)}.")
+    return set(enabled)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--formula", required=True, type=Path)
@@ -44,6 +64,7 @@ def main() -> None:
     parser.add_argument("--asset", required=True, help="Release asset filename")
     parser.add_argument("--sha256", required=True, help="SHA256 of the release asset")
     parser.add_argument("--binary", required=True, help="Binary filename extracted by Homebrew")
+    parser.add_argument("--legacy-exceptions", required=True, type=Path)
     args = parser.parse_args()
 
     if args.binary not in PUBLIC_PACKAGES:
@@ -59,9 +80,12 @@ def main() -> None:
         raise SystemExit("--version must be a v-prefixed semantic version tag.")
     if not HEX64_RE.fullmatch(args.sha256):
         raise SystemExit("--sha256 must be 64 lowercase hex characters.")
+    if args.formula.resolve() == args.legacy_exceptions.resolve():
+        raise SystemExit("--formula and --legacy-exceptions must be different files.")
 
     formula = args.formula
     text = formula.read_text(encoding="utf-8")
+    legacy_exceptions = load_legacy_exceptions(args.legacy_exceptions)
     url = f"https://github.com/{args.repo}/releases/download/{args.version}/{args.asset}"
     formula_version = args.version[1:]
 
@@ -70,7 +94,14 @@ def main() -> None:
     text = replace_one(text, FORMULA_VERSION_RE, f'  version "{formula_version}"', "version")
     text = replace_one(text, FORMULA_SHA256_RE, f'  sha256 "{args.sha256}"', "sha256")
     text = replace_one(text, FORMULA_INSTALL_RE, f'    bin.install "{args.binary}"', "install")
+    legacy_exceptions.discard(args.binary)
+    exception_document = {"enabled": sorted(legacy_exceptions)}
+
     formula.write_text(text, encoding="utf-8")
+    args.legacy_exceptions.write_text(
+        json.dumps(exception_document, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

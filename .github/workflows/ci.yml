@@ -151,10 +151,16 @@ jobs:
           mkdir -p "$product_home"
           version_output="$(HOME="$product_home" "$binary_path" --version 2>&1)"
           printf '%s\n' "$version_output"
-          expected_version="$(brew info --json=v2 "$qualified_formula" | python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"].removeprefix("v"))')"
+          formula_info="$(brew info --json=v2 "$qualified_formula")"
+          expected_version="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"].removeprefix("v"))' <<< "$formula_info")"
+          source_url="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["urls"]["stable"]["url"])' <<< "$formula_info")"
+          formula_sha256="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["urls"]["stable"]["checksum"])' <<< "$formula_info")"
           printf '%s\n' "$version_output" | python3 scripts/verify_formula_version.py \
             --binary "$BINARY" \
-            --expected "$expected_version"
+            --expected "$expected_version" \
+            --source-url "$source_url" \
+            --sha256 "$formula_sha256" \
+            --legacy-exceptions config/legacy-dist-exceptions.json
 
           brew test "$qualified_formula"
 

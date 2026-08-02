@@ -43,6 +43,12 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("scripts/verify_formula_version.py", workflow)
         self.assertIn('--binary "$BINARY"', workflow)
         self.assertIn('--expected "$expected_version"', workflow)
+        self.assertIn('--source-url "$source_url"', workflow)
+        self.assertIn('--sha256 "$formula_sha256"', workflow)
+        self.assertIn(
+            "--legacy-exceptions config/legacy-dist-exceptions.json",
+            workflow,
+        )
         self.assertNotIn("(?<![0-9])", workflow)
 
     def test_required_check_names_are_stable(self) -> None:

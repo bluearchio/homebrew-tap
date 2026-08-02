@@ -95,6 +95,26 @@ Pre-launch formulas may be disabled until their first public GitHub release is
 cut. The release automation removes the disabled state when it writes the real
 asset URL and SHA256.
 
+### One-Way Legacy Bootstrap
+
+[`config/legacy-dist-exceptions.json`](config/legacy-dist-exceptions.json)
+temporarily enables the four exact, checksum-pinned `dist.bluearch.io` archives
+that predate the strict public version identity. The approved version, URL, and
+SHA256 tuples remain hardcoded in the verifier; adding a name to the JSON file
+cannot authorize any other artifact.
+
+Every formula update must pass that config to `scripts/update_formula.py`. The
+updater removes only the released product from the sorted exception list, and
+the generated release PR stages both the formula and config changes. Once an
+exception is removed, restoring the old dist formula fails CI. GitHub Release
+URLs never use this compatibility path and must emit exactly one public
+`bluearch-aws-*` version identity.
+
+Formula `version` values intentionally omit the tag's leading `v` because
+`brew style` rejects that prefix. This one-time normalization does not add a
+formula revision, and the new product version PRs replace the legacy entries,
+minimizing unnecessary reinstall exposure during the rollout.
+
 ### One-Time Repository Settings
 
 The product release workflows open a formula pull request and request squash
