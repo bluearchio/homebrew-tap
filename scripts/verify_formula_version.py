@@ -42,6 +42,12 @@ LEGACY_DIST_RELEASES = {
         "fc8644656df517ff87b236bf6f1919de48dfa1c7482aeda9022692643b278b10",
     ),
 }
+LEGACY_VERSION_OUTPUTS = {
+    "bluearch-aws-core": "bluearch-core 0.2.5",
+    "bluearch-aws-governance": "0.2.3",
+    "bluearch-aws-ops": "BlueArch CLI version: v0.13.3",
+    "bluearch-aws-tags": "AWS Tag Manager CLI v0.12.3 (production)",
+}
 
 
 def load_legacy_exceptions(path: Path) -> frozenset[str]:
@@ -83,6 +89,11 @@ def verify_version_output(
         binary in enabled_legacy_exceptions
         and (expected, source_url, sha256) == LEGACY_DIST_RELEASES[binary]
     ):
+        if output.splitlines() != [LEGACY_VERSION_OUTPUTS[binary]]:
+            raise ValueError(
+                f"expected the exact pinned legacy {binary} version identity, "
+                f"got {output!r}"
+            )
         return
 
     expected_url = (

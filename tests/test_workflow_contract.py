@@ -49,7 +49,27 @@ class WorkflowContractTests(unittest.TestCase):
             "--legacy-exceptions config/legacy-dist-exceptions.json",
             workflow,
         )
+        self.assertIn('version_output_file="$RUNNER_TEMP/version-output.txt"', workflow)
+        self.assertIn('< "$version_output_file"', workflow)
+        self.assertNotIn('version_output="$(HOME=', workflow)
         self.assertNotIn("(?<![0-9])", workflow)
+
+    def test_repository_contract_enforces_monotonic_legacy_transition(self) -> None:
+        workflow = (WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+
+        self.assertIn("scripts/verify_legacy_transition.py", workflow)
+        self.assertIn('base_revision="$PR_BASE_SHA"', workflow)
+        self.assertIn('base_revision="$PUSH_BEFORE_SHA"', workflow)
+        self.assertIn('git cat-file -e "${base_revision}^{commit}"', workflow)
+        self.assertIn('git show "${base_revision}:${current_config}"', workflow)
+        self.assertIn('"${verify[@]}" --base-config "$base_config"', workflow)
+        self.assertIn('"${verify[@]}" --bootstrap', workflow)
+        self.assertIn("fetch-depth: 0", workflow)
+
+        repository_contract = workflow[
+            workflow.index("  repository-contract:") : workflow.index("  formula-quality:")
+        ]
+        self.assertIn("scripts/verify_legacy_transition.py", repository_contract)
 
     def test_required_check_names_are_stable(self) -> None:
         ci = (WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")

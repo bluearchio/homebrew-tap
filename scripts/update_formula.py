@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update a BlueArch Homebrew formula from a GitHub release asset."""
+"""Update a BlueArch Homebrew formula from a stable GitHub release asset."""
 
 from __future__ import annotations
 
@@ -15,10 +15,8 @@ FORMULA_SHA256_RE = re.compile(r'^\s*sha256 ".*"$', re.MULTILINE)
 FORMULA_INSTALL_RE = re.compile(r'^\s*bin\.install .*$', re.MULTILINE)
 DISABLE_RE = re.compile(r'^\s*disable! .*\n', re.MULTILINE)
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
-SEMVER_TAG_RE = re.compile(
-    r"^v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
-    r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
-    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+STABLE_SEMVER_TAG_RE = re.compile(
+    r"^v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$"
 )
 PUBLIC_PACKAGES = frozenset(
     {
@@ -60,7 +58,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--formula", required=True, type=Path)
     parser.add_argument("--repo", required=True, help="GitHub repo, for example bluearchio/bluearch-aws-core")
-    parser.add_argument("--version", required=True, help="Release tag, for example v1.2.3")
+    parser.add_argument("--version", required=True, help="Stable release tag, for example v1.2.3")
     parser.add_argument("--asset", required=True, help="Release asset filename")
     parser.add_argument("--sha256", required=True, help="SHA256 of the release asset")
     parser.add_argument("--binary", required=True, help="Binary filename extracted by Homebrew")
@@ -76,8 +74,8 @@ def main() -> None:
         raise SystemExit("--repo must match bluearchio/<binary>.")
     if args.asset != f"{args.binary}-macos-arm64.zip":
         raise SystemExit("--asset must match <binary>-macos-arm64.zip.")
-    if not SEMVER_TAG_RE.fullmatch(args.version):
-        raise SystemExit("--version must be a v-prefixed semantic version tag.")
+    if not STABLE_SEMVER_TAG_RE.fullmatch(args.version):
+        raise SystemExit("--version must be a stable v-prefixed semantic version tag.")
     if not HEX64_RE.fullmatch(args.sha256):
         raise SystemExit("--sha256 must be 64 lowercase hex characters.")
     if args.formula.resolve() == args.legacy_exceptions.resolve():

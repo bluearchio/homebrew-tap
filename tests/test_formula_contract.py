@@ -64,7 +64,12 @@ class FormulaContractTests(unittest.TestCase):
                     f"https://github.com/bluearchio/{package}/releases/download/{release_tag}/{asset}",
                 }
 
-                self.assertRegex(version, r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$")
+                self.assertRegex(
+                    version,
+                    r"^(?:0|[1-9][0-9]*)\."
+                    r"(?:0|[1-9][0-9]*)\."
+                    r"(?:0|[1-9][0-9]*)$",
+                )
                 self.assertIn(url, allowed_urls)
                 self.assertNotIn("/latest/", url)
                 self.assertRegex(sha256, r"^[0-9a-f]{64}$")

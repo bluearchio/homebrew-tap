@@ -101,19 +101,27 @@ asset URL and SHA256.
 temporarily enables the four exact, checksum-pinned `dist.bluearch.io` archives
 that predate the strict public version identity. The approved version, URL, and
 SHA256 tuples remain hardcoded in the verifier; adding a name to the JSON file
-cannot authorize any other artifact.
+cannot authorize any other artifact. Each tuple must also emit its exact known
+one-line legacy version output.
 
 Every formula update must pass that config to `scripts/update_formula.py`. The
 updater removes only the released product from the sorted exception list, and
-the generated release PR stages both the formula and config changes. Once an
-exception is removed, restoring the old dist formula fails CI. GitHub Release
-URLs never use this compatibility path and must emit exactly one public
-`bluearch-aws-*` version identity.
+the generated release PR stages both the formula and config changes. The required
+repository contract compares each pull request with its base revision and permits
+the enabled set only to shrink. The first bootstrap is accepted only when all four
+hardcoded names and tuples match exactly. Once an exception is removed, restoring
+the old dist formula or re-adding its name fails CI. GitHub Release URLs never use
+this compatibility path and must emit exactly one public `bluearch-aws-*` version
+identity.
 
 Formula `version` values intentionally omit the tag's leading `v` because
 `brew style` rejects that prefix. This one-time normalization does not add a
 formula revision, and the new product version PRs replace the legacy entries,
 minimizing unnecessary reinstall exposure during the rollout.
+
+The formula updater accepts stable `vX.Y.Z` release tags only. Prerelease and
+build-metadata tags are rejected so the updater, formulas, and version verifier
+share one release-version contract.
 
 ### One-Time Repository Settings
 

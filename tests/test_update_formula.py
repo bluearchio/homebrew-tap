@@ -129,28 +129,36 @@ class UpdateFormulaTests(unittest.TestCase):
                 },
             )
 
-    def test_accepts_well_formed_prerelease_tag(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            directory = Path(tmpdir)
-            formula = directory / "bluearch-aws-core.rb"
-            legacy_exceptions = self.write_exception_config(directory, ("bluearch-aws-core",))
-            formula.write_text(sample_formula(), encoding="utf-8")
+    def test_rejects_prerelease_and_build_tags_without_writing(self) -> None:
+        for version in (
+            "v1.2.3-rc.1",
+            "v1.2.3+build.7",
+            "v1.2.3-rc.1+build.7",
+        ):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as tmpdir:
+                directory = Path(tmpdir)
+                formula = directory / "bluearch-aws-core.rb"
+                legacy_exceptions = self.write_exception_config(
+                    directory,
+                    ("bluearch-aws-core",),
+                )
+                original_formula = sample_formula()
+                original_exceptions = legacy_exceptions.read_text(encoding="utf-8")
+                formula.write_text(original_formula, encoding="utf-8")
 
-            result = self.run_update(
-                formula,
-                legacy_exceptions,
-                version="v1.2.3-rc.1+build.7",
-            )
+                result = self.run_update(
+                    formula,
+                    legacy_exceptions,
+                    version=version,
+                )
 
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn(
-                "/releases/download/v1.2.3-rc.1+build.7/",
-                formula.read_text(encoding="utf-8"),
-            )
-            self.assertEqual(
-                json.loads(legacy_exceptions.read_text(encoding="utf-8")),
-                {"enabled": []},
-            )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("stable v-prefixed semantic version", result.stderr)
+                self.assertEqual(formula.read_text(encoding="utf-8"), original_formula)
+                self.assertEqual(
+                    legacy_exceptions.read_text(encoding="utf-8"),
+                    original_exceptions,
+                )
 
     def test_rejects_inputs_outside_the_public_release_contract(self) -> None:
         invalid_inputs = (

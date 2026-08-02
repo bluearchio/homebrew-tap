@@ -8,6 +8,7 @@ from pathlib import Path
 
 from scripts.verify_formula_version import (
     LEGACY_DIST_RELEASES,
+    LEGACY_VERSION_OUTPUTS,
     load_legacy_exceptions,
     verify_version_output,
 )
@@ -76,12 +77,13 @@ class VerifyFormulaVersionTests(unittest.TestCase):
             config = write_config(Path(tmpdir), list(LEGACY_DIST_RELEASES))
             for binary, (version, source_url, sha256) in LEGACY_DIST_RELEASES.items():
                 with self.subTest(binary=binary):
+                    expected_output = LEGACY_VERSION_OUTPUTS[binary]
                     verify_version_output(
                         binary,
                         version,
                         source_url,
                         sha256,
-                        "legacy output\n",
+                        f"{expected_output}\n",
                         config,
                     )
                     with self.assertRaises(ValueError):
@@ -90,7 +92,7 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                             version,
                             source_url,
                             "b" * 64,
-                            "legacy output\n",
+                            f"{expected_output}\n",
                             config,
                         )
                     with self.assertRaises(ValueError):
@@ -99,7 +101,33 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                             version,
                             source_url.replace("dist.bluearch.io", "mirror.example"),
                             sha256,
-                            "legacy output\n",
+                            f"{expected_output}\n",
+                            config,
+                        )
+
+    def test_rejects_non_exact_pinned_legacy_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = write_config(Path(tmpdir), list(LEGACY_DIST_RELEASES))
+            for binary, (version, source_url, sha256) in LEGACY_DIST_RELEASES.items():
+                expected_output = LEGACY_VERSION_OUTPUTS[binary]
+                invalid_outputs = (
+                    "legacy output\n",
+                    f" {expected_output}\n",
+                    f"{expected_output} \n",
+                    f"{expected_output}\nextra output\n",
+                    f"{expected_output}\n\n",
+                )
+                for output in invalid_outputs:
+                    with (
+                        self.subTest(binary=binary, output=output),
+                        self.assertRaises(ValueError),
+                    ):
+                        verify_version_output(
+                            binary,
+                            version,
+                            source_url,
+                            sha256,
+                            output,
                             config,
                         )
 
@@ -133,7 +161,7 @@ class VerifyFormulaVersionTests(unittest.TestCase):
                     version,
                     source_url,
                     sha256,
-                    "bluearch-core 0.2.5\n",
+                    f"{LEGACY_VERSION_OUTPUTS[binary]}\n",
                     config,
                 )
 

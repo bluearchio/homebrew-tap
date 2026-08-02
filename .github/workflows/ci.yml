@@ -22,10 +22,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Enforce one-way legacy exception transition
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_config="config/legacy-dist-exceptions.json"
+          base_config="$RUNNER_TEMP/base-legacy-dist-exceptions.json"
+          verify=(
+            python3 scripts/verify_legacy_transition.py
+            --current-config "$current_config"
+            --formula-dir Formula
+          )
+
+          case "$EVENT_NAME" in
+            pull_request)
+              base_revision="$PR_BASE_SHA"
+              ;;
+            push)
+              base_revision="$PUSH_BEFORE_SHA"
+              ;;
+            workflow_dispatch)
+              "${verify[@]}" --base-config "$current_config"
+              exit 0
+              ;;
+            *)
+              echo "Unsupported event for legacy transition validation: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ -z "$base_revision" || "$base_revision" =~ ^0+$ ]]; then
+            "${verify[@]}" --bootstrap
+            exit 0
+          fi
+
+          git cat-file -e "${base_revision}^{commit}"
+          if git cat-file -e "${base_revision}:${current_config}" 2>/dev/null; then
+            git show "${base_revision}:${current_config}" > "$base_config"
+            "${verify[@]}" --base-config "$base_config"
+          else
+            "${verify[@]}" --bootstrap
+          fi
       - name: Test formula and updater contracts
         run: python3 -m unittest discover -s tests -v
       - name: Compile Python helpers
@@ -149,18 +195,20 @@ jobs:
 
           product_home="$RUNNER_TEMP/product-home"
           mkdir -p "$product_home"
-          version_output="$(HOME="$product_home" "$binary_path" --version 2>&1)"
-          printf '%s\n' "$version_output"
+          version_output_file="$RUNNER_TEMP/version-output.txt"
+          HOME="$product_home" "$binary_path" --version > "$version_output_file" 2>&1
+          cat "$version_output_file"
           formula_info="$(brew info --json=v2 "$qualified_formula")"
           expected_version="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"].removeprefix("v"))' <<< "$formula_info")"
           source_url="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["urls"]["stable"]["url"])' <<< "$formula_info")"
           formula_sha256="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["formulae"][0]["urls"]["stable"]["checksum"])' <<< "$formula_info")"
-          printf '%s\n' "$version_output" | python3 scripts/verify_formula_version.py \
+          python3 scripts/verify_formula_version.py \
             --binary "$BINARY" \
             --expected "$expected_version" \
             --source-url "$source_url" \
             --sha256 "$formula_sha256" \
-            --legacy-exceptions config/legacy-dist-exceptions.json
+            --legacy-exceptions config/legacy-dist-exceptions.json \
+            < "$version_output_file"
 
           brew test "$qualified_formula"
 
