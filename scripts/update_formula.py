@@ -8,21 +8,32 @@ import re
 from pathlib import Path
 
 
-URL_RE = re.compile(r'^\s*url ".*"$', re.MULTILINE)
-VERSION_RE = re.compile(r'^\s*version ".*"$', re.MULTILINE)
-SHA256_RE = re.compile(r'^\s*sha256 ".*"$', re.MULTILINE)
-INSTALL_RE = re.compile(r'^\s*bin\.install .*$',
-                        re.MULTILINE)
+FORMULA_URL_RE = re.compile(r'^\s*url ".*"$', re.MULTILINE)
+FORMULA_VERSION_RE = re.compile(r'^\s*version ".*"$', re.MULTILINE)
+FORMULA_SHA256_RE = re.compile(r'^\s*sha256 ".*"$', re.MULTILINE)
+FORMULA_INSTALL_RE = re.compile(r'^\s*bin\.install .*$', re.MULTILINE)
 DISABLE_RE = re.compile(r'^\s*disable! .*\n', re.MULTILINE)
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
-SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+SEMVER_TAG_RE = re.compile(
+    r"^v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+    r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
+PUBLIC_PACKAGES = frozenset(
+    {
+        "bluearch-aws-core",
+        "bluearch-aws-governance",
+        "bluearch-aws-ops",
+        "bluearch-aws-tags",
+    }
+)
 
 
 def replace_one(text: str, pattern: re.Pattern[str], replacement: str, label: str) -> str:
-    updated, count = pattern.subn(replacement, text, count=1)
+    count = len(pattern.findall(text))
     if count != 1:
         raise SystemExit(f"Expected exactly one {label} line, found {count}.")
-    return updated
+    return pattern.sub(replacement, text, count=1)
 
 
 def main() -> None:
@@ -35,25 +46,30 @@ def main() -> None:
     parser.add_argument("--binary", required=True, help="Binary filename extracted by Homebrew")
     args = parser.parse_args()
 
-    if "/" not in args.repo or args.repo.startswith("/") or args.repo.endswith("/"):
-        raise SystemExit("--repo must be in owner/name form.")
-    if not args.version.startswith("v"):
-        raise SystemExit("--version must be a tag that starts with v.")
+    if args.binary not in PUBLIC_PACKAGES:
+        allowed = ", ".join(sorted(PUBLIC_PACKAGES))
+        raise SystemExit(f"--binary must be one of: {allowed}.")
+    if args.formula.name != f"{args.binary}.rb":
+        raise SystemExit("--formula filename must match --binary.")
+    if args.repo != f"bluearchio/{args.binary}":
+        raise SystemExit("--repo must match bluearchio/<binary>.")
+    if args.asset != f"{args.binary}-macos-arm64.zip":
+        raise SystemExit("--asset must match <binary>-macos-arm64.zip.")
+    if not SEMVER_TAG_RE.fullmatch(args.version):
+        raise SystemExit("--version must be a v-prefixed semantic version tag.")
     if not HEX64_RE.fullmatch(args.sha256):
         raise SystemExit("--sha256 must be 64 lowercase hex characters.")
-    for label, value in (("--asset", args.asset), ("--binary", args.binary)):
-        if not SAFE_NAME_RE.fullmatch(value):
-            raise SystemExit(f"{label} contains unsupported characters.")
 
     formula = args.formula
     text = formula.read_text(encoding="utf-8")
     url = f"https://github.com/{args.repo}/releases/download/{args.version}/{args.asset}"
+    formula_version = args.version[1:]
 
     text = DISABLE_RE.sub("", text)
-    text = replace_one(text, URL_RE, f'  url "{url}"', "url")
-    text = replace_one(text, VERSION_RE, f'  version "{args.version}"', "version")
-    text = replace_one(text, SHA256_RE, f'  sha256 "{args.sha256}"', "sha256")
-    text = replace_one(text, INSTALL_RE, f'    bin.install "{args.binary}"', "install")
+    text = replace_one(text, FORMULA_URL_RE, f'  url "{url}"', "url")
+    text = replace_one(text, FORMULA_VERSION_RE, f'  version "{formula_version}"', "version")
+    text = replace_one(text, FORMULA_SHA256_RE, f'  sha256 "{args.sha256}"', "sha256")
+    text = replace_one(text, FORMULA_INSTALL_RE, f'    bin.install "{args.binary}"', "install")
     formula.write_text(text, encoding="utf-8")
 
 

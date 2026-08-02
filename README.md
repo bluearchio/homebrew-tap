@@ -7,12 +7,15 @@ This tap only publishes the public `bluearch-aws-*` packages.
 ## Install
 
 ```bash
-brew tap bluearchio/tap
 brew install bluearchio/tap/bluearch-aws-core
 brew install bluearchio/tap/bluearch-aws-ops
 brew install bluearchio/tap/bluearch-aws-tags
 brew install bluearchio/tap/bluearch-aws-governance
 ```
+
+A fully qualified install automatically adds the tap and trusts only the named
+formula. Install Core first so Homebrew records formula-specific trust before it
+resolves a product's Core dependency. You do not need to trust the whole tap.
 
 During private pre-launch, a formula may remain disabled until that repo's first
 public GitHub release updates the formula through the release automation.
@@ -70,9 +73,16 @@ brew untap bluearchio/tap
 
 ```bash
 for formula in Formula/*.rb; do ruby -c "$formula"; done
+python3 -m unittest discover -s tests -v
+brew style bluearchio/tap
+brew audit --strict --tap=bluearchio/tap
+brew readall --no-simulate bluearchio/tap
 ```
 
-Before changing a formula, confirm the URL points to a public GitHub release asset and the SHA256 was computed from that exact asset.
+Before changing a formula, confirm the URL points to an immutable public release
+asset and the SHA256 was computed from that exact asset. Pull requests also install
+and test every formula on a clean ARM64 macOS runner, verify the published version,
+and reject legacy private executable names.
 
 ## Release Automation
 
@@ -84,6 +94,27 @@ requests.
 Pre-launch formulas may be disabled until their first public GitHub release is
 cut. The release automation removes the disabled state when it writes the real
 asset URL and SHA256.
+
+### One-Time Repository Settings
+
+The product release workflows open a formula pull request and request squash
+auto-merge. Configure this repository once before cutting a product release:
+
+1. Enable **Allow auto-merge** and **Allow squash merging** in the repository's
+   pull-request settings.
+2. Protect `main` with a branch protection rule or ruleset.
+3. Require changes to `main` to arrive through a pull request and disallow force
+   pushes and branch deletion.
+4. Require these exact status-check contexts: `Tap release gate`, `gitleaks`,
+   and `Analyze Ruby` (shown under the CI, Secret Scan, and CodeQL workflows,
+   respectively). The stable tap gate depends on these individual CI checks:
+   `Repository contract`, `Formula quality`, `Install bluearch-aws-core`,
+   `Install bluearch-aws-ops`, `Install bluearch-aws-tags`, and
+   `Install bluearch-aws-governance`.
+
+Auto-merge will then wait for every formula check to pass before GitHub performs
+the squash merge. These are repository settings; release workflows must not
+weaken or bypass them.
 
 ## Security
 

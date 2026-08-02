@@ -2,7 +2,7 @@ class BluearchAwsTags < Formula
   desc "AWS tagging, lifecycle, tag policy, and FinOps CLI"
   homepage "https://github.com/bluearchio/bluearch-aws-tags"
   url "https://dist.bluearch.io/releases/bluearch-aws-tags/v0.12.3/bluearch-aws-tags-macos-arm64.zip"
-  version "v0.12.3"
+  version "0.12.3"
   sha256 "fc8644656df517ff87b236bf6f1919de48dfa1c7482aeda9022692643b278b10"
   license "MIT"
 
