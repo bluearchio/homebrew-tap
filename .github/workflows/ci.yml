@@ -83,6 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Register this checkout as the local tap
         shell: bash
@@ -91,8 +92,11 @@ jobs:
           test "$(uname -m)" = "arm64"
           brew tap "$TAP_NAME"
           tap_root="$(brew --repository "$TAP_NAME")"
-          git -C "$tap_root" fetch --no-tags "$GITHUB_WORKSPACE" HEAD
-          git -C "$tap_root" checkout --detach FETCH_HEAD
+          if [[ "$(git -C "$tap_root" rev-parse --is-shallow-repository)" == "true" ]]; then
+            git -C "$tap_root" fetch --unshallow origin
+          fi
+          git -C "$tap_root" fetch --no-tags --force "$GITHUB_WORKSPACE" HEAD:refs/remotes/ci/workspace
+          git -C "$tap_root" checkout --detach refs/remotes/ci/workspace
           test "$(git -C "$tap_root" rev-parse HEAD)" = "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
       - name: Trust only the formulae required for static inspection
         shell: bash
@@ -131,6 +135,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -142,8 +147,11 @@ jobs:
           test "$(uname -m)" = "arm64"
           brew tap "$TAP_NAME"
           tap_root="$(brew --repository "$TAP_NAME")"
-          git -C "$tap_root" fetch --no-tags "$GITHUB_WORKSPACE" HEAD
-          git -C "$tap_root" checkout --detach FETCH_HEAD
+          if [[ "$(git -C "$tap_root" rev-parse --is-shallow-repository)" == "true" ]]; then
+            git -C "$tap_root" fetch --unshallow origin
+          fi
+          git -C "$tap_root" fetch --no-tags --force "$GITHUB_WORKSPACE" HEAD:refs/remotes/ci/workspace
+          git -C "$tap_root" checkout --detach refs/remotes/ci/workspace
           test "$(git -C "$tap_root" rev-parse HEAD)" = "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
       - name: Install with formula-specific trust
         env:

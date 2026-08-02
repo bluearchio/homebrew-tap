@@ -30,7 +30,24 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn('brew install "$TAP_NAME/bluearch-aws-core"', workflow)
         self.assertIn('brew install "$TAP_NAME/$FORMULA"', workflow)
         self.assertIn('brew tap "$TAP_NAME"', workflow)
-        self.assertIn('git -C "$tap_root" fetch --no-tags "$GITHUB_WORKSPACE" HEAD', workflow)
+        self.assertEqual(workflow.count("fetch-depth: 0"), 3)
+        self.assertEqual(
+            workflow.count('git -C "$tap_root" fetch --unshallow origin'),
+            2,
+        )
+        self.assertEqual(
+            workflow.count(
+                'git -C "$tap_root" fetch --no-tags --force "$GITHUB_WORKSPACE" '
+                "HEAD:refs/remotes/ci/workspace"
+            ),
+            2,
+        )
+        self.assertEqual(
+            workflow.count(
+                'git -C "$tap_root" checkout --detach refs/remotes/ci/workspace'
+            ),
+            2,
+        )
         self.assertNotIn('brew tap "$TAP_NAME" "$GITHUB_WORKSPACE"', workflow)
         self.assertIn("brew trust --json=v1", workflow)
         self.assertIn('if "bluearchio/tap" in trust["taps"]:', workflow)
