@@ -1,9 +1,9 @@
 class BluearchAwsOps < Formula
   desc "AWS operations CLI for recommendations, alerting, and remediation"
   homepage "https://github.com/bluearchio/bluearch-aws-ops"
-  url "https://dist.bluearch.io/releases/bluearch-aws-ops/v0.13.3/bluearch-aws-ops-macos-arm64.zip"
-  version "0.13.3"
-  sha256 "7a3b875b53215ba382021c28bdd105433423048444489b76a516315350c7335e"
+  url "https://github.com/bluearchio/bluearch-aws-ops/releases/download/v0.13.7/bluearch-aws-ops-macos-arm64.zip"
+  version "0.13.7"
+  sha256 "06821efaa125bbcfb94442188a08936912f8058e2934dffa6cd07b65905434e1"
   license "MIT"
 
   depends_on arch: :arm64
