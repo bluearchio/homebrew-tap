@@ -1,9 +1,9 @@
 class BluearchAwsGovernance < Formula
   desc "AWS Governance Hub with bundled misconfiguration catalog"
   homepage "https://github.com/bluearchio/bluearch-aws-governance"
-  url "https://github.com/bluearchio/bluearch-aws-governance/releases/download/v0.2.5/bluearch-aws-governance-macos-arm64.zip"
-  version "0.2.5"
-  sha256 "bf0db49fc3ac46400d5f7d2484f2505553d0744ed6cf92eb5c77e2477211aff7"
+  url "https://github.com/bluearchio/bluearch-aws-governance/releases/download/v0.2.6/bluearch-aws-governance-macos-arm64.zip"
+  version "0.2.6"
+  sha256 "a7004a79ed1a8640520cb3b286bd6cb13188f992466d5dc9e13149339bb91021"
   license "MIT"
 
   depends_on arch: :arm64
