@@ -1,9 +1,9 @@
 class BluearchAwsTags < Formula
   desc "AWS tagging, lifecycle, tag policy, and FinOps CLI"
   homepage "https://github.com/bluearchio/bluearch-aws-tags"
-  url "https://github.com/bluearchio/bluearch-aws-tags/releases/download/v0.12.5/bluearch-aws-tags-macos-arm64.zip"
-  version "0.12.5"
-  sha256 "434b1fc0286e09745e66fd85a5a6237b606be7a86ac3a5aa6068b9cd5f1e6c6a"
+  url "https://github.com/bluearchio/bluearch-aws-tags/releases/download/v0.12.7/bluearch-aws-tags-macos-arm64.zip"
+  version "0.12.7"
+  sha256 "1ea8b8940e63e22068515db878bc7d86c670cc1703cfd96a3304c17f56b4e9c7"
   license "MIT"
 
   depends_on arch: :arm64
